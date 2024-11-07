@@ -38,3 +38,33 @@ mean(.)
 
 
 # Tidyverse
+
+
+title: "como usar quarto"¬
+author: "Giancarlo Castro Caman"¬
+format: ¬
+....toc: true¬
+....toc-location: left¬
+....number-sections: true¬
+....embed-resources: true¬
+....output-file: index
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

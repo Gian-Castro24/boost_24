@@ -1,13 +1,14 @@
 ---
-title: "Como usar quarto"
+title: "G"
 author: "Giancarlo Castro Caman"
-format: 
+format:
   html:
     toc: true
     toc-location: left
     number-sections: true
     embed_resources: true
     output-file: index
+    
 ---
 
 # Quarto
@@ -51,34 +52,25 @@ esta es una formula cualquiera $$k=\frac{\left(2x-1\right)^2-1}{4}"$$
 
 4.  Hacer push al repositorio
 
-# Modelos lineales mixtos 
-## importar datos
+# Modelos lineales mixtos
 
+## importar datos
 ```{r}
 source('https://inkaverse.com/setup.r')
 
-
-url <- "https://docs.google.com/spreadsheets/d/15r7ZwcZZHbEgltlF6gSFvCTFA-CFzVBWwg3mFlRyKPs/edit?gid=172957346#gid=172957346"
-
-gs <- url %>% 
-  as_sheets_id()
-
-fb <- gs %>%
-  range_read("fb")
+library(openxlsx)
+data_de_tesis_prof <- openxlsx::read.xlsx("LA MOLINA 2014 POTATO WUE (FB).xlsx",sheet="fb")
 ```
-
 ## Modelo lineal
 ```{r}
-modelo <- aov(formula = block + lfa ~ riego + geno + riego*geno
-          , data = fb)
-anova(modelo)
+modelo <- lm(formula = lfa ~ bloque + geno + riego + riego*geno, data = data_de_tesis_prof)
 
+anova(modelo)
 plot(modelo)
 ```
-
-### Boxplot
+## Box plot
 ```{r}
-ggplot(fb, aes(x = geno, y = lfa, colour =riego)) + 
+ggplot(data_de_tesis_prof, aes(x = geno, y = lfa, colour =riego)) + 
   geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
   labs(title = "Boxplot con interacción de niveles de riego y genotipo", 
        x = "Interacción Riego y Genotipo", 
@@ -86,47 +78,43 @@ ggplot(fb, aes(x = geno, y = lfa, colour =riego)) +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) # inclinar etiquetas del eje x
 ```
-
 ## Modelo lineal: Hi
 ```{r}
 modelo <- aov(formula = block + hi ~ riego + geno + riego*geno
-          , data = fb)
+          , data = data_de_tesis_prof)
 anova(modelo)
 
 plot(modelo)
 ```
-
 ## Modelo lineal mixto para el lfa
 ```{r}
 library(lme4)
 library(lmerTest)
 
 model <- lme4::lmer(lfa ~ riego + geno + riego*geno +
-                      (1|bloque), data = fb)
+                      (1|bloque), data = data_de_tesis_prof)
 
 anova(model)
 
 plot(modelo)
 
-ol <- boxplot(lfa ~ riego*geno,fb)
+ol <- boxplot(lfa ~ riego*geno,data_de_tesis_prof)
 ol
 ```
-
 
 ```{r}
 library(inti)
 
-model <- remove_outliers(data = fb
+model <- remove_outliers(data = data_de_tesis_prof
                          , formula = lfa ~ riego + geno + riego*geno + (1|bloque)
                          , plot_diag = T
                 )
 model
 ```
-
 # Agricolae comparacion de medias
 ```{r}
 modelo <- lm(formula = lfa ~ bloque + riego + geno + riego*geno
-          , data = fb)
+          , data = data_de_tesis_prof)
 anova(modelo)
 
 library(agricolae)
@@ -165,7 +153,7 @@ ggplot(grupos, aes(x = geno, y = lfa, fill = riego)) +
 # enmeans: Comparación de medias
 ```{r}
 modelo <- lme4::lmer(hi ~ (1|bloque) + geno*riego
-                     , data = fb)
+                     , data = data_de_tesis_prof)
 anova(modelo)
 source('https://inkaverse.com/setup.r')
 
@@ -191,7 +179,6 @@ cm3 <- emmeans(modelo, ~ riego * geno) %>%
   cld(Letters = letters, reversed=3)
 cm3
 ```
-
 ## Grafico
 ```{r}
 dtcm <- as.data.frame(cm2) %>% 
@@ -207,14 +194,13 @@ ggplot(dtcm, aes(x = geno, y = emmean, fill = riego)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ggtitle("Gráfico de barras: LFA por genotipoyriego")
 ```
-
 # Analisis multivariado
 ```{r}
-str (fb)
+str (data_de_tesis_prof)
 ```
-# Correlacion 
+# Correlacion
 ```{r}
-fb %>% 
+data_de_tesis_prof %>% 
   select_if(is.numeric) %>% 
   dplyr::select(!c("block")) %>% 
   pairs.panels(x = .
@@ -224,11 +210,10 @@ fb %>%
                , scale = FALSE
            ,lm=TRUE)
 ```
-
 ## PCA: Analisis de componentes principales
 ```{r}
 library(FactoMineR)
-mv <- fb %>% 
+mv <- data_de_tesis_prof %>% 
   group_by(riego, geno) %>% 
   summarise(across(where(is.numeric), ~ mean(., na.rm = TRUE))) %>% 
   PCA(scale.unit = T, quali.sup = c(1:4), graph = F)
@@ -243,4 +228,4 @@ list(p1, p2) %>%
   plot_grid(plotlist=.,nrow=1)
 ```
 
-`
+
